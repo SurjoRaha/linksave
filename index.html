@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Surjo Raha </title>
+    
+     <style>
+
+        .box {
+            height:100%;
+            width:100%;
+            margin: 2;
+            padding: 10px;
+
+            font-family: Arial, sans-serif;
+        }
+
+        /* Fullscreen box style */
+        .box {
+            width: 95%; /* Adjusted to make it responsive */
+            height:100%; /* Take up most of the screen */
+            margin: 30px auto;
+            padding: 30px;
+            border: 2px solid #ff1616;
+            border-radius: 10px;
+            background-color: #99b4d8c5;
+            box-shadow: 0 4px 8px rgba(4, 0, 255, 0.89);
+            overflow-y: auto; /* Make sure the box can scroll if needed */
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #020002;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            background-color: #40afaa67;
+            border: 2px solid #190666;
+            padding: 10px;
+            text-align: center;
+        }
+
+        button {
+            background-color: #03c50d;
+            color: rgb(0, 0, 0);
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h1 ><u>Manual Data Entry</u></h1>
+
+    <form id="dataForm">
+        <label for="platformName">Platform Name:</label>
+        <input type="text" id="platformName" required><br><br>
+
+        <label for="subjectName">Subject Name:</label>
+        <input type="text" id="subjectName" required><br><br>
+
+        <label for="link">Video Link:</label>
+        <input type="url" id="link" required><br><br>
+
+        <button type="submit">Add Entry</button>
+    </form>
+
+    <h2><U>Submitted Data</U></h2>
+    <table border="2" id="dataTable">
+        <tr>
+            <th>SL No</th>
+            <th>Platform Name</th>
+            <th>Subject Name</th>
+            <th>Link</th>
+            <th>Actions</th>
+        </tr>
+    </table>
+</div>
+
+<script>
+    // Load data from localStorage when the page is loaded
+    document.addEventListener('DOMContentLoaded', loadDataFromStorage);
+
+    function loadDataFromStorage() {
+        const data = JSON.parse(localStorage.getItem('dataEntries')) || [];
+        const table = document.getElementById('dataTable');
+        data.forEach(entry => {
+            const newRow = table.insertRow();
+            newRow.innerHTML = `
+                <td>${entry.number}</td>
+                <td>${entry.platformName}</td>
+                <td>${entry.subjectName}</td>
+                <td><a href="${entry.link}" target="_blank">${entry.link}</a></td>
+                <td><button onclick="deleteEntry(this)">Delete</button></td>
+            `;
+        });
+        updateSerialNumbers(); // Update serial numbers after loading data
+    }
+
+    document.getElementById('dataForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const platformName = document.getElementById('platformName').value;
+        const subjectName = document.getElementById('subjectName').value;
+        const link = document.getElementById('link').value;
+
+        // Get data from localStorage
+        const dataEntries = JSON.parse(localStorage.getItem('dataEntries')) || [];
+        const newEntry = {
+            number: dataEntries.length + 1, // Automatically assign serial number
+            platformName,
+            subjectName,
+            link
+        };
+
+        // Save new entry to localStorage
+        dataEntries.push(newEntry);
+        localStorage.setItem('dataEntries', JSON.stringify(dataEntries));
+
+        // Add new row to table
+        const table = document.getElementById('dataTable');
+        const newRow = table.insertRow();
+        newRow.innerHTML = `
+            <td>${newEntry.number}</td>
+            <td>${platformName}</td>
+            <td>${subjectName}</td>
+            <td><a href="${link}" target="_blank">${link}</a></td>
+            <td><button onclick="deleteEntry(this)">Delete</button></td>
+        `;
+
+        // Clear form
+        document.getElementById('dataForm').reset();
+    });
+
+    function deleteEntry(button) {
+        // Get the row that contains the delete button
+        const row = button.parentElement.parentElement;
+        const number = row.cells[0].textContent;
+
+        // Remove from the table
+        row.remove();
+
+        // Remove from localStorage
+        let dataEntries = JSON.parse(localStorage.getItem('dataEntries')) || [];
+        dataEntries = dataEntries.filter(entry => entry.number !== parseInt(number));
+        localStorage.setItem('dataEntries', JSON.stringify(dataEntries));
+
+        // Recalculate serial numbers after deleting an entry
+        updateSerialNumbers();
+    }
+
+    function updateSerialNumbers() {
+        const table = document.getElementById('dataTable');
+        const rows = table.getElementsByTagName('tr');
+        
+        // Start from row 1 to avoid header row
+        for (let i = 1; i < rows.length; i++) {
+            rows[i].cells[0].textContent = i; // Set SL No as row index
+        }
+
+        // Update localStorage serial numbers
+        let dataEntries = JSON.parse(localStorage.getItem('dataEntries')) || [];
+        dataEntries.forEach((entry, index) => {
+            entry.number = index + 1; // Update the serial number in data
+        });
+        localStorage.setItem('dataEntries', JSON.stringify(dataEntries));
+    }
+</script>
+
+</body>
+</html>
